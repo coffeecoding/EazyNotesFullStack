@@ -1,7 +1,6 @@
 # EazyNotes Full Stack
 
 Backend and Desktop Front-end repository for EazyNotes, an End-to-End-Encrypted privacy-preserving note-taking app.
-**Please note that the repository name EazyNotesAPI is a slight misnomer, as originally a separation of the API from the WPF Front-end was intended.**
 
 ## Features
 - **End-to-End Encryption**: Notes are encrypted on the client side using 
