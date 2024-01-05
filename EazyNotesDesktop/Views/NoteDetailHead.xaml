@@ -1,0 +1,105 @@
+﻿<UserControl
+    x:Class="EazyNotesDesktop.Views.NoteDetailHead"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:EazyNotes.Language;assembly=EazyNotes.Language"
+    xmlns:local="clr-namespace:EazyNotesDesktop.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    DataContextChanged="UserControl_DataContextChanged"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <local:BoolToOpacityConverter x:Key="BoolToOpacityConverter" />
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:DateDeletedToVisibilityConverter x:Key="DateDeletedToVisibilityConverter" />
+        <local:InverseDateDeletedToVisibilityConverter x:Key="InverseDateDeletedToVisibilityConverter" />
+        <local:NoteTypeToNoteVisibileConverter x:Key="NoteTypeToNoteVisibileConverter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Grid.Column="0"
+                Command="{Binding TrashUntrashCommand}"
+                Content="&#xE107; Trash"
+                Style="{StaticResource DeleteButtonStyle}"
+                Visibility="{Binding Path=PersistedNote.DateDeleted, Converter={StaticResource InverseDateDeletedToVisibilityConverter}}" />
+            <CheckBox
+                Grid.Column="2"
+                VerticalAlignment="Center"
+                Content="Wrap Text"
+                Cursor="Hand"
+                IsChecked="{Binding WrapText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                Style="{StaticResource DefaultCheckBoxStyle}"
+                Visibility="{Binding ., Converter={StaticResource NoteTypeToNoteVisibileConverter}}" />
+            <Button
+                Grid.Column="4"
+                Command="{Binding ToggleGloballyPinnedCommand}"
+                Content="&#xE129;"
+                Cursor="Hand"
+                Opacity="{Binding GloballyPinned, Converter={StaticResource BoolToOpacityConverter}}"
+                Style="{StaticResource GlobalPinButtonStyle}" />
+            <StackPanel Grid.Column="6" Orientation="Horizontal">
+                <!--<Button
+                    Command="{Binding ShareCommand}"
+                    Content="Share"
+                    Cursor="Hand"
+                    Style="{StaticResource ChromelessButtonStyle}" />-->
+                <Button
+                    Command="{Binding DiscardCommand}"
+                    Content="&#xE10A; Discard"
+                    Cursor="Hand"
+                    Style="{StaticResource ChromelessButtonStyle}" />
+                <Button
+                    Margin="5,0,0,0"
+                    Command="{Binding SaveCommand}"
+                    Content="&#xE105; Save"
+                    Cursor="Hand"
+                    Style="{StaticResource ChromelessButtonStyle}" />
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1" Margin="2,5,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                Style="{StaticResource SettingDetailsTextBlockStyle}"
+                Text="{Binding ResultMessage}"
+                TextWrapping="Wrap" />
+            <TextBlock
+                Grid.Column="2"
+                Style="{StaticResource SettingDetailsTextBlockStyle}"
+                Text="{Binding Path=PersistedNote.DateCreated}" />
+        </Grid>
+        <StackPanel Grid.Row="2">
+            <TextBox
+                x:Name="TitleTextBox"
+                KeyDown="TitleTextBox_KeyDown"
+                Style="{StaticResource NoteTitleTextBoxStyle}"
+                Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBlock
+                Margin="5,0,5,5"
+                Style="{StaticResource InputLabelStyle}"
+                Text="Title" />
+        </StackPanel>
+    </Grid>
+</UserControl>

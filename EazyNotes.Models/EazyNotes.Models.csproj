@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EazyNotes.Common\EazyNotes.Common.csproj" />
+    <ProjectReference Include="..\EazyNotes.CryptoServices\EazyNotes.CryptoServices.csproj" />
+  </ItemGroup>
+
+</Project>

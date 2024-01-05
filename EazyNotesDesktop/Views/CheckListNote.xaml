@@ -1,0 +1,169 @@
+﻿<UserControl
+    x:Class="EazyNotesDesktop.Views.CheckListNote"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:EazyNotes.Language;assembly=EazyNotes.Language"
+    xmlns:local="clr-namespace:EazyNotesDesktop.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="450"
+    d:DesignWidth="800"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
+        <local:IndentCountToMarginConverter x:Key="IndentCountToMarginConverter" />
+    </UserControl.Resources>
+
+    <Grid Margin="0,10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Button
+            Grid.Row="0"
+            Width="Auto"
+            Padding="0,4"
+            VerticalAlignment="Top"
+            Panel.ZIndex="1"
+            Click="BtnAddItem_Click"
+            Content="&#xE109; Checklist Item"
+            Cursor="Hand"
+            Style="{StaticResource QuickActionButtonStyle}"
+            Visibility="{Binding Path=ItemsSource.Count, ElementName=CheckListItemsControl, Converter={StaticResource IntToVisibilityConverter}}" />
+        <Button
+            x:Name="BtnAddItem"
+            Grid.Row="2"
+            Width="180"
+            Margin="0,10,0,0"
+            Click="BtnAddItem_Click"
+            Content="&#xE109; Checklist Item"
+            Cursor="Hand"
+            Style="{StaticResource SecondaryButtonStyle}" />
+        <ScrollViewer
+            x:Name="MainScrollViewer"
+            Grid.Row="1"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl
+                x:Name="CheckListItemsControl"
+                FocusManager.FocusedElement="{Binding TextTextBox}"
+                ItemsSource="{Binding CheckListItemVMs}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="CheckListItem">
+                        <Button
+                            Margin="{Binding IndentCount, Converter={StaticResource IndentCountToMarginConverter}}"
+                            HorizontalContentAlignment="Stretch"
+                            Command="{Binding ToggleCheckCommand}"
+                            FocusVisualStyle="{x:Null}"
+                            Style="{StaticResource CheckListItemButtonStyle}">
+                            <Button.Content>
+                                <Grid AllowDrop="True" FocusVisualStyle="{x:Null}">
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Grid
+                                        x:Name="MiddleSplitDropGrid"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="2"
+                                        Panel.ZIndex="1"
+                                        Visibility="{Binding Path=DataContext.IsDraggingItem, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="1*" />
+                                            <RowDefinition Height="1*" />
+                                        </Grid.RowDefinitions>
+                                        <Border
+                                            x:Name="TopHalf"
+                                            Grid.Row="0"
+                                            Background="Transparent"
+                                            DragEnter="DragEnter_TopHalf"
+                                            DragLeave="DragLeave_TopHalf"
+                                            Drop="DropItem_TopHalf" />
+                                        <Border
+                                            x:Name="BottomHalf"
+                                            Grid.Row="1"
+                                            Background="Transparent"
+                                            DragEnter="DragEnter_BottomHalf"
+                                            DragLeave="DragLeave_BottomHalf"
+                                            Drop="DropItem_BottomHalf" />
+                                    </Grid>
+                                    <Border
+                                        x:Name="DropAreaTop"
+                                        Grid.Row="0"
+                                        Height="10"
+                                        Background="{DynamicResource BackgroundContentBrush}"
+                                        CornerRadius="4"
+                                        Visibility="{Binding IsBeingDraggedOverTop, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+
+                                    <!--  DragEnter="Item_DragEnter"  -->
+                                    <Grid Grid.Row="1" FocusVisualStyle="{x:Null}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <CheckBox
+                                            Grid.Column="0"
+                                            Margin="0,6,0,0"
+                                            VerticalContentAlignment="Top"
+                                            Command="{Binding ToggleCheckCommand}"
+                                            IsChecked="{Binding IsChecked, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                            Style="{StaticResource DefaultCheckBoxStyle}" />
+                                        <TextBox
+                                            x:Name="TextTextBox"
+                                            Grid.Column="1"
+                                            HorizontalAlignment="Stretch"
+                                            HorizontalContentAlignment="Stretch"
+                                            KeyDown="TextTextBox_KeyDown"
+                                            KeyUp="TextTextBox_KeyUp"
+                                            Loaded="TextTextBox_Loaded"
+                                            Style="{StaticResource CheckListItemTextBoxStyle}"
+                                            Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            TextAlignment="Left" />
+                                        <Button
+                                            Grid.Column="2"
+                                            Command="{Binding RemoveCommand}"
+                                            Content="&#xE106;"
+                                            Style="{StaticResource QuickActionDeleteButtonStyle}"
+                                            Visibility="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Hide}" />
+                                        <TextBlock
+                                            Grid.Column="3"
+                                            Height="20"
+                                            Margin="4,0,0,0"
+                                            Padding="4,0,4,2"
+                                            Cursor="ScrollAll"
+                                            MouseDown="Item_MouseMove"
+                                            Style="{StaticResource TextBlockStyleWithOpacityMask}"
+                                            Text="&#x2af6;"
+                                            Visibility="{Binding Path=IsMouseOver, RelativeSource={RelativeSource Mode=TemplatedParent}, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Hide}" />
+                                    </Grid>
+                                    <Border
+                                        x:Name="InBetweenDropBorder"
+                                        Grid.Row="0"
+                                        Grid.RowSpan="3"
+                                        Background="Transparent"
+                                        BorderBrush="{DynamicResource BackgroundContentBrush}"
+                                        BorderThickness="0,1,0,0"
+                                        CornerRadius="10"
+                                        FocusVisualStyle="{x:Null}"
+                                        Visibility="{Binding Path=DataContext.IsDraggingItem, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Border
+                                        x:Name="DropAreaBottom"
+                                        Grid.Row="2"
+                                        Height="10"
+                                        Background="{DynamicResource BackgroundContentBrush}"
+                                        CornerRadius="4"
+                                        Visibility="{Binding IsBeingDraggedOverBottom, Converter={StaticResource BoolToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged}" />
+                                </Grid>
+                            </Button.Content>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

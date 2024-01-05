@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <UserSecretsId>a0a2a393-065a-4d29-a94a-d0e8eddb7525</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NLog" Version="4.7.11" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EazyNotes.Common\EazyNotes.Common.csproj" />
+    <ProjectReference Include="..\EazyNotes.CryptoServices\EazyNotes.CryptoServices.csproj" />
+    <ProjectReference Include="..\EazyNotes.Models\EazyNotes.Models.csproj" />
+    <ProjectReference Include="..\EazyNotesAPI.Library\EazyNotesAPI.Library.csproj" />
+  </ItemGroup>
+
+
+</Project>

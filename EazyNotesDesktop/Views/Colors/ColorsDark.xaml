@@ -1,0 +1,71 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!--  Colors  4403cd  -->
+    <Color x:Key="AccentColor">
+        #bf544d
+    </Color>
+    <Color x:Key="BackgroundContentColor">
+        #202021
+    </Color>
+    <Color x:Key="BackgroundColor">
+        #1b1b1c
+    </Color>
+    <Color x:Key="BorderColor">
+        #8f888888
+    </Color>
+    <Color x:Key="GreenColor">
+        #0bb80b
+    </Color>
+    <Color x:Key="RedColor">
+        #b80b0b
+    </Color>
+    <Color x:Key="ShadowColor">
+        #000000
+    </Color>
+    <Color x:Key="TextDisabledColor">
+        #43ffffff
+    </Color>
+    <Color x:Key="TextPrimaryColor">
+        #ffffff
+    </Color>
+    <Color x:Key="TextSecondaryColor">
+        #5fffffff
+    </Color>
+
+    <!--  Brushes  -->
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush
+        x:Key="AccentBrushExtraLight"
+        Opacity="0.6"
+        Color="{StaticResource AccentColor}" />
+    <SolidColorBrush
+        x:Key="AccentBrushLight"
+        Opacity="0.8"
+        Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="BackgroundContentBrush" Color="{StaticResource BackgroundContentColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush
+        x:Key="BorderBrushExtraLight"
+        Opacity="0.1"
+        Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="WindowChromeBrush" Color="{StaticResource BackgroundContentColor}" />
+    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource GreenColor}" />
+    <SolidColorBrush x:Key="RedBrush" Color="{StaticResource RedColor}" />
+    <SolidColorBrush
+        x:Key="RedBrushSoft"
+        Opacity="0.8"
+        Color="{StaticResource RedColor}" />
+    <SolidColorBrush
+        x:Key="RedBrushLight"
+        Opacity="0.2"
+        Color="{StaticResource RedColor}" />
+    <SolidColorBrush
+        x:Key="RedBrushExtraLight"
+        Opacity="0.05"
+        Color="{StaticResource RedColor}" />
+    <SolidColorBrush x:Key="ShadowBrush" Color="{StaticResource ShadowColor}" />
+    <SolidColorBrush x:Key="TextDisabledBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+
+</ResourceDictionary>

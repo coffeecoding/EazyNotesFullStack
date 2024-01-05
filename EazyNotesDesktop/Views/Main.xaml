@@ -1,0 +1,769 @@
+﻿<Window
+    x:Class="EazyNotesDesktop.Views.Main"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:lang="clr-namespace:EazyNotes.Language;assembly=EazyNotes.Language"
+    xmlns:local="clr-namespace:EazyNotesDesktop.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:prism="http://prismlibrary.com/"
+    Title="EazyNotes"
+    Width="1024"
+    Height="768"
+    prism:ViewModelLocator.AutoWireViewModel="True"
+    Background="{DynamicResource BackgroundBrush}"
+    Icon="/Assets/icon.ico"
+    Loaded="Window_Loaded"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <local:BoolToDoubleConverter x:Key="BoolToDoubleConverter" />
+        <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <local:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter" />
+        <local:StateToNoteTitleFontWeightConverter x:Key="StateToNoteTitleFontWeightConverter" />
+        <local:NoteTypeToNoteVisibileConverter x:Key="NoteTypeToNoteVisibleConverter" />
+        <local:NoteTypeToCheckListNoteVisibleConverter x:Key="NoteTypeToCheckListNoteVisibleConverter" />
+        <local:HexStringToSolidColorBrushConverter x:Key="HexStringToSolidColorBrushConverter" />
+        <local:NotNullToVisibleConverter x:Key="NotNullToVisibleConverter" />
+        <local:ObjectToNullConverter x:Key="ObjectToNullConverter" />
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding
+            Key="S"
+            Command="{Binding Path=SelectedNoteVM.SaveCommand}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="T"
+            Command="{Binding Path=CreateTopicCommand}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="N"
+            Command="{Binding Path=CreateNoteCommand}"
+            Modifiers="Control" />
+        <KeyBinding
+            Key="B"
+            Command="{Binding Path=CreateCheckListNoteCommand}"
+            Modifiers="Control" />
+    </Window.InputBindings>
+
+    <Border Opacity="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource BoolToDoubleConverter}}">
+        <Grid>
+            <Grid.RowDefinitions>
+                <!--  task buttons row  -->
+                <RowDefinition Height="Auto" />
+                <!--  secondary tasks buttons row  -->
+                <RowDefinition Height="Auto" />
+                <!--  globally pinned notes row  -->
+                <RowDefinition Height="Auto" />
+                <!--  main content  -->
+                <RowDefinition Height="*" />
+                <!--  status bar  -->
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Border
+                Grid.Row="0"
+                Padding="5"
+                Panel.ZIndex="1"
+                Background="{DynamicResource BackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrushExtraLight}"
+                BorderThickness="0,0,0,0.5">
+                <!--<Border.Effect>
+                    <DropShadowEffect
+                        BlurRadius="10"
+                        Direction="0"
+                        ShadowDepth="4"
+                        Color="{DynamicResource BorderColor}" />
+                </Border.Effect>-->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Button
+                            x:Name="CreateTopicBtn"
+                            Command="{Binding CreateTopicCommand}"
+                            Content="&#xE1DA; Topic"
+                            MouseMove="CreateTopicBtn_MouseMove"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            ToolTip="Create new Topic. A topic may contain multiple notes." />
+                        <Button
+                            x:Name="CreateSimpleNoteBtn"
+                            Margin="5,0"
+                            Command="{Binding CreateNoteCommand}"
+                            Content="&#xE132; New Note"
+                            MouseMove="CreateSimpleNoteBtn_MouseMove"
+                            Style="{StaticResource ChromelessButtonStyle}"
+                            ToolTip="Create new Simple Note with a title and some text." />
+                        <Button
+                            x:Name="CreateCheckListNoteBtn"
+                            Command="{Binding CreateCheckListNoteCommand}"
+                            Content="&#xE133; New Checklist"
+                            MouseMove="CreateCheckListNoteBtn_MouseMove"
+                            Style="{StaticResource ChromelessButtonStyle}"
+                            ToolTip="Create new Checklist Note with a title and list items that can be checked/unchecked. Useful for e.g. todo lists or grocery shopping list." />
+                    </StackPanel>
+
+                    <TextBox
+                        x:Name="SearchBox"
+                        Grid.Column="2"
+                        Padding="5,0,30,0"
+                        KeyDown="SearchBox_KeyDown"
+                        Style="{StaticResource SearchBoxStyle}"
+                        Text="{Binding SearchTerm, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBlock
+                        x:Name="SearchBoxWatermark"
+                        Grid.Column="2"
+                        Margin="6,0"
+                        VerticalAlignment="Center"
+                        IsHitTestVisible="False"
+                        Text="Search for Topic, Note, Content">
+                        <TextBlock.Style>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="Foreground" Value="{DynamicResource BorderBrush}" />
+                                <Setter Property="FontFamily" Value="{StaticResource DefaultFont}" />
+                                <Setter Property="FontSize" Value="14" />
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Text, ElementName=SearchBox}" Value="">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <Button
+                        x:Name="SearchBtn"
+                        Grid.Column="2"
+                        Margin="0,0,2.5,0"
+                        HorizontalAlignment="Right"
+                        Command="{Binding SearchCommand}"
+                        Content="&#x1f50d;"
+                        Style="{StaticResource SearchButtonStyle}" />
+
+                    <StackPanel Grid.Column="4" Orientation="Horizontal">
+                        <Button
+                            Click="OpenSettings_Click"
+                            Content="&#xE115; Settings"
+                            Cursor="Hand"
+                            IsEnabled="{Binding CanNavigateToSettings}"
+                            Style="{StaticResource ChromelessButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!--  Secondary Task panel  -->
+            <Border
+                Grid.Row="1"
+                Margin="5,0,5,5"
+                BorderBrush="{DynamicResource BorderBrushExtraLight}"
+                BorderThickness="0,0,0,0.5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <ToggleButton
+                        x:Name="ToggleTopicSymbolAndText"
+                        Grid.Column="0"
+                        MinWidth="100"
+                        Cursor="Hand"
+                        IsChecked="{Binding Path=SettingsViewModel.ShowTopicTitles}"
+                        MouseMove="ToggleTopicSymbolAndText_MouseMove"
+                        Style="{DynamicResource TopicTitleToggleButtonStyle}"
+                        ToolTip="Toggle show title below topic symbols" />
+                    <Button
+                        x:Name="SaveAllBtn"
+                        Grid.Column="1"
+                        Width="Auto"
+                        Command="{Binding SaveAllCommand}"
+                        Content="&#x1f4be; Save all"
+                        Cursor="Hand"
+                        MouseMove="SaveAllBtn_MouseMove"
+                        Style="{StaticResource QuickActionSecondaryTaskPanelStyle}"
+                        ToolTip="Save all changes made to notes in all topics" />
+                    <ComboBox
+                        x:Name="NoteSortKeysComboBox"
+                        Grid.Column="2"
+                        Margin="5,0"
+                        VerticalAlignment="Center"
+                        ItemContainerStyle="{StaticResource ComboBoxItemContainerStyle}"
+                        ItemsSource="{Binding Path=SettingsViewModel.NoteSortKeys}"
+                        SelectedItem="{Binding Path=SettingsViewModel.SelectedNoteSortKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource DefaultComboBoxStyle}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate DataType="NoteSortKey">
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button
+                        x:Name="UpdateTopicPositionsBtn"
+                        Grid.Column="3"
+                        Width="Auto"
+                        Command="{Binding UpdateTopicPositionsCommand}"
+                        Content="&#x1f4be; DBG Save Topic Positions"
+                        Cursor="Hand"
+                        Style="{StaticResource QuickActionSecondaryTaskPanelStyle}" />
+                </Grid>
+            </Border>
+
+            <!--  Globally Pinned Notes Row  -->
+            <Border Grid.Row="2" MouseMove="Window_MouseMove">
+                <ListBox ItemsSource="{Binding GloballyPinnedNotes}" Style="{StaticResource ListBoxStyle}">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="BaseNoteViewModel">
+                            <Button
+                                x:Name="BtnGloballyPinnedNote"
+                                Click="BtnGloballyPinnedNote_Click"
+                                Content="{Binding PersistedTitle}"
+                                Style="{StaticResource GlobalPinButtonStyle}" />
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel ScrollViewer.CanContentScroll="False" />
+                        </ItemsPanelTemplate>
+                    </ListBox.ItemsPanel>
+                </ListBox>
+            </Border>
+
+            <!--  Main Content Row  -->
+            <Grid Grid.Row="3" MouseMove="Window_MouseMove">
+                <Grid.ColumnDefinitions>
+                    <!--  Lists column  -->
+                    <ColumnDefinition
+                        Width="400"
+                        MinWidth="150"
+                        MaxWidth="768" />
+                    <!--  Separator  -->
+                    <ColumnDefinition Width="5" />
+                    <!--  Note Detail View  -->
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock
+                    Grid.ColumnSpan="3"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource EazyNotesTextBlockStyle}"
+                    Text="Fetching Data ..."
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}" />
+
+                <!--<ScrollViewer Grid.Column="0" VerticalScrollBarVisibility="Auto">-->
+                <Grid Grid.Column="0">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.Row="0" Margin="10,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <Button
+                                x:Name="RefreshTopicsBtn"
+                                Grid.Column="0"
+                                Command="{Binding RefreshTopicsCommand}"
+                                Cursor="Hand"
+                                Style="{StaticResource QuickActionInLineButtonStyle}">
+                                <Button.Content>
+                                    <TextBlock>
+                                        <Run FontSize="7" Text="&#xE117; " />
+                                        <Run FontSize="10" Text="Refresh Topics" />
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                            <Button
+                                x:Name="RefreshNotesBtn"
+                                Grid.Column="2"
+                                Command="{Binding RefreshNotesCommand}"
+                                Cursor="Hand"
+                                Style="{StaticResource QuickActionInLineButtonStyle}">
+                                <Button.Content>
+                                    <TextBlock>
+                                        <Run FontSize="10" Text="Refresh Notes " />
+                                        <Run FontSize="7" Text="&#xE117;" />
+                                    </TextBlock>
+                                </Button.Content>
+                            </Button>
+                        </Grid>
+                    </Border>
+                    <TextBlock
+                        x:Name="NotesListPlaceholderText"
+                        Grid.Row="1"
+                        Margin="60,20,0,0"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Top"
+                        Panel.ZIndex="1"
+                        Style="{StaticResource SettingDetailsTextBlockStyle}"
+                        Text="No topic selected"
+                        Visibility="{Binding SelectedTopicVM, Converter={StaticResource ObjectToNullConverter}}" />
+                    <TabControl
+                        x:Name="MainTabControl"
+                        Grid.Row="1"
+                        HorizontalContentAlignment="Stretch"
+                        ItemsSource="{Binding TopicViewModels, Mode=TwoWay}"
+                        SelectedItem="{Binding SelectedTopicVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        Style="{StaticResource DefaultTabControlStyle}"
+                        TabStripPlacement="Left">
+                        <TabControl.ItemContainerStyle>
+                            <Style BasedOn="{StaticResource TabItemStyle}" TargetType="{x:Type TabItem}">
+                                <Setter Property="Foreground" Value="{Binding PersistedColor, Converter={StaticResource HexStringToSolidColorBrushConverter}}" />
+                            </Style>
+                        </TabControl.ItemContainerStyle>
+                        <TabControl.ItemTemplate>
+                            <DataTemplate DataType="TopicViewModel">
+                                <Grid MouseMove="Topic_MouseMove">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <RowDefinition Height="Auto" />
+                                    </Grid.RowDefinitions>
+                                    <Viewbox
+                                        Grid.Row="0"
+                                        Grid.ColumnSpan="3"
+                                        Width="36"
+                                        Height="32">
+                                        <!--  Foreground="{StaticResource TextSecondaryBrush}"  -->
+                                        <TextBlock FontFamily="Segoe UI Symbol" Text="{Binding PersistedSymbol}" />
+                                    </Viewbox>
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Grid.ColumnSpan="3"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Text="{Binding PersistedTitle, Mode=OneWay}"
+                                        Visibility="{Binding Path=IsChecked, UpdateSourceTrigger=PropertyChanged, ElementName=ToggleTopicSymbolAndText, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Button
+                                        x:Name="BtnEdit"
+                                        Grid.Row="0"
+                                        Grid.Column="2"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Command="{Binding EditCommand}"
+                                        Content="&#xE104;"
+                                        Style="{StaticResource QuickActionButtonStyle}"
+                                        Visibility="Hidden" />
+                                    <Border
+                                        Grid.RowSpan="2"
+                                        Grid.Column="0"
+                                        Grid.ColumnSpan="3"
+                                        AllowDrop="True"
+                                        Background="{DynamicResource TextSecondaryBrush}"
+                                        BorderThickness="0"
+                                        DragEnter="Topic_DragEnter"
+                                        DragLeave="Topic_DragLeave"
+                                        Drop="Topic_Drop"
+                                        FocusVisualStyle="{x:Null}"
+                                        Opacity="0.2"
+                                        Visibility="{Binding Path=DataContext.IsDraggingTopic, RelativeSource={RelativeSource AncestorType=TabControl}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True">
+                                        <Setter TargetName="BtnEdit" Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </TabControl.ItemTemplate>
+                        <TabControl.ContentTemplate>
+                            <DataTemplate DataType="TopicViewModel">
+                                <ScrollViewer x:Name="NotesListScrollViewer" VerticalScrollBarVisibility="Auto">
+                                    <ListBox
+                                        x:Name="NotesListBox"
+                                        ItemContainerStyle="{StaticResource DefaultListBoxItemStyle}"
+                                        ItemsSource="{Binding NoteViewModels, Mode=TwoWay}"
+                                        ScrollViewer.CanContentScroll="False"
+                                        ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                        ScrollViewer.ScrollChanged="NotesListBox_ScrollChanged"
+                                        ScrollViewer.VerticalScrollBarVisibility="Disabled"
+                                        SelectedItem="{Binding Path=DataContext.SelectedNoteVM, Mode=TwoWay, RelativeSource={RelativeSource AncestorType=TabControl}}"
+                                        SelectionChanged="ListBox_SelectionChanged"
+                                        Style="{StaticResource ListBoxStyle}">
+                                        <ListBox.Template>
+                                            <ControlTemplate>
+                                                <ItemsPresenter />
+                                            </ControlTemplate>
+                                        </ListBox.Template>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate DataType="BaseNoteViewModel">
+                                                <Grid
+                                                    x:Name="NoteItemWrapperGrid"
+                                                    MinHeight="50"
+                                                    MaxHeight="80"
+                                                    MouseMove="Note_MouseMove">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
+                                                    <Viewbox
+                                                        Grid.Row="0"
+                                                        Grid.Column="0"
+                                                        Width="28"
+                                                        Height="20">
+                                                        <TextBlock
+                                                            FontFamily="Segoe UI Symbol"
+                                                            Foreground="{DynamicResource TextSecondaryBrush}"
+                                                            Text="{Binding PersistedSymbol}" />
+                                                    </Viewbox>
+                                                    <Grid Grid.RowSpan="2" Grid.Column="1">
+                                                        <Grid.RowDefinitions>
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                            <RowDefinition Height="Auto" />
+                                                        </Grid.RowDefinitions>
+                                                        <TextBlock
+                                                            Grid.Row="0"
+                                                            FontWeight="{Binding State, Converter={StaticResource StateToNoteTitleFontWeightConverter}}"
+                                                            Style="{StaticResource EazyNotesTextBlockStyle}"
+                                                            Text="{Binding Title}" />
+                                                        <TextBlock VerticalAlignment="Center" Text="untitled">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="{x:Type TextBlock}">
+                                                                    <Setter Property="FontSize" Value="14" />
+                                                                    <Setter Property="FontStyle" Value="Italic" />
+                                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding Title}" Value="">
+                                                                            <Setter Property="Visibility" Value="Visible" />
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                        <TextBlock
+                                                            Grid.Row="1"
+                                                            Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            Padding="0"
+                                                            HorizontalAlignment="Stretch"
+                                                            FontSize="10"
+                                                            Style="{StaticResource TextBlockStyleWithOpacityMask}"
+                                                            TextWrapping="Wrap">
+                                                            <Run Text="Edited" />
+                                                            <Run Text="{Binding DateLastEdited, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" />
+                                                        </TextBlock>
+                                                        <TextBlock
+                                                            Grid.Row="2"
+                                                            Width="{Binding Path=ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                                            Padding="0"
+                                                            HorizontalAlignment="Stretch"
+                                                            Style="{StaticResource TextBlockStyleWithOpacityMask}"
+                                                            Text="{Binding PreviewText, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                                                            TextWrapping="Wrap" />
+                                                    </Grid>
+                                                    <StackPanel
+                                                        Grid.Row="0"
+                                                        Grid.RowSpan="3"
+                                                        Grid.Column="2"
+                                                        Margin="4,0"
+                                                        HorizontalAlignment="Right"
+                                                        VerticalAlignment="Top"
+                                                        Background="Transparent"
+                                                        Orientation="Vertical">
+                                                        <Button
+                                                            x:Name="BtnPin"
+                                                            Margin="0,0,0,0"
+                                                            Command="{Binding TogglePinnedCommand}"
+                                                            Content="&#x1f588;"
+                                                            Style="{StaticResource QuickActionTagButtonStyle}"
+                                                            Visibility="{Binding Pinned, Mode=TwoWay, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                                                        <Button
+                                                            x:Name="BtnUnpin"
+                                                            Margin="0,0,0,0"
+                                                            Command="{Binding TogglePinnedCommand}"
+                                                            Content="&#x1f4cc;"
+                                                            Style="{StaticResource QuickActionIsTaggedButtonStyle}"
+                                                            Visibility="{Binding Pinned, Mode=TwoWay, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                                        <Button
+                                                            x:Name="BtnTrash"
+                                                            Margin="0,0,0,0"
+                                                            Command="{Binding TrashUntrashCommand}"
+                                                            Content="&#xE107;"
+                                                            Style="{StaticResource QuickActionDeleteButtonStyle}"
+                                                            Visibility="Collapsed" />
+                                                        <Button
+                                                            x:Name="BtnDiscard"
+                                                            Margin="0,0,0,0"
+                                                            Command="{Binding DiscardCommand}"
+                                                            Content="&#xE106;"
+                                                            Style="{StaticResource QuickActionButtonStyle}"
+                                                            Visibility="Collapsed" />
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <DataTemplate.Triggers>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="2" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Visible" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="2" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Visible" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="0" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="1" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="0" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="1" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="0" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="1" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="0" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="1" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="2" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                    <MultiDataTrigger>
+                                                        <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding Path=DataContext.Pinned, RelativeSource={RelativeSource TemplatedParent}}" Value="True" />
+                                                            <Condition Binding="{Binding Path=DataContext.State, RelativeSource={RelativeSource TemplatedParent}}" Value="2" />
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource TemplatedParent}}" Value="False" />
+                                                        </MultiDataTrigger.Conditions>
+                                                        <MultiDataTrigger.Setters>
+                                                            <Setter TargetName="BtnPin" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnUnpin" Property="Visibility" Value="Visible" />
+                                                            <Setter TargetName="BtnTrash" Property="Visibility" Value="Collapsed" />
+                                                            <Setter TargetName="BtnDiscard" Property="Visibility" Value="Collapsed" />
+                                                        </MultiDataTrigger.Setters>
+                                                    </MultiDataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                </ScrollViewer>
+                            </DataTemplate>
+                        </TabControl.ContentTemplate>
+                    </TabControl>
+                </Grid>
+                <!--</ScrollViewer>-->
+
+                <GridSplitter
+                    x:Name="MainGridSplitter"
+                    Grid.Column="1"
+                    Margin="2,0"
+                    HorizontalAlignment="Stretch">
+                    <GridSplitter.Style>
+                        <Style TargetType="{x:Type GridSplitter}">
+                            <Setter Property="Background" Value="{DynamicResource BorderBrushExtraLight}" />
+                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="{DynamicResource AccentBrush}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </GridSplitter.Style>
+                </GridSplitter>
+
+                <!--  Selected Note View  -->
+                <Border
+                    Grid.Column="2"
+                    Padding="10"
+                    Background="{DynamicResource BackgroundBrush}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TextBlock
+                            x:Name="NotePlaceholderText"
+                            Grid.Row="0"
+                            Grid.RowSpan="2"
+                            Margin="0,20"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Style="{StaticResource SettingDetailsTextBlockStyle}"
+                            Text="No note selected"
+                            Visibility="{Binding SelectedNoteVM, Converter={StaticResource ObjectToNullConverter}}" />
+                        <local:NoteDetailHead
+                            Grid.Row="0"
+                            DataContext="{Binding SelectedNoteVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding ., Converter={StaticResource NotNullToVisibleConverter}}" />
+                        <local:CheckListNote
+                            Grid.Row="1"
+                            DataContext="{Binding SelectedNoteVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding ., Converter={StaticResource NoteTypeToCheckListNoteVisibleConverter}}" />
+                        <local:Note
+                            Grid.Row="1"
+                            DataContext="{Binding SelectedNoteVM, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                            Visibility="{Binding ., Converter={StaticResource NoteTypeToNoteVisibleConverter}}" />
+                    </Grid>
+                </Border>
+            </Grid>
+
+            <!--  Status bar row  -->
+            <StatusBar Grid.Row="4" Style="{StaticResource StatusBarStyle}">
+                <StatusBarItem>
+                    <TextBlock
+                        MinWidth="386"
+                        Style="{StaticResource SettingDetailsTextBlockStyle}"
+                        Text="{Binding StatusMessage}"
+                        TextWrapping="NoWrap" />
+                </StatusBarItem>
+                <Separator Background="{DynamicResource BorderBrushExtraLight}" />
+                <StatusBarItem>
+                    <TextBlock
+                        Style="{StaticResource SettingDetailsTextBlockStyle}"
+                        Text="{Binding HoveredItemToolTip}"
+                        TextWrapping="NoWrap" />
+                </StatusBarItem>
+                <StatusBarItem HorizontalAlignment="Right">
+                    <TextBlock
+                        Style="{StaticResource SettingDetailsTextBlockStyle}"
+                        Text="{Binding DatasourceConnectionStatus}"
+                        TextWrapping="NoWrap" />
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+    </Border>
+
+</Window>

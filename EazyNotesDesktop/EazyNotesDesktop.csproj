@@ -1,0 +1,78 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <RuntimeIdentifier Condition=" '$(OS)' == 'Windows_NT' ">win-x64</RuntimeIdentifier>
+    <TargetLatestRuntimePatch>true</TargetLatestRuntimePatch>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>EazyNotes</AssemblyName>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Assets\icon.ico" />
+    <None Remove="Assets\logo.png" />
+    <None Remove="Assets\settings\DarkModeSetting.png" />
+    <None Remove="Assets\settings\LightModeSetting.png" />
+    <None Remove="Assets\spinner.png" />
+    <None Remove="NLog.config" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Remove="Views\Colors\ColorsDark.xaml" />
+    <Page Remove="Views\Colors\ColorsLight.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="NLog.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog" Version="4.7.10" />
+    <PackageReference Include="Prism.Core" Version="8.0.0.1909" />
+    <PackageReference Include="Prism.Unity" Version="8.0.0.1909" />
+    <PackageReference Include="Prism.Wpf" Version="8.0.0.1909" />
+    <PackageReference Include="Refractored.MvvmHelpers" Version="1.6.2" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="System.Management" Version="5.0.0" />
+    <PackageReference Include="WindowsAPICodePack-Shell" Version="1.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EazyNotes.Common\EazyNotes.Common.csproj" />
+    <ProjectReference Include="..\EazyNotes.CryptoServices\EazyNotes.CryptoServices.csproj" />
+    <ProjectReference Include="..\EazyNotes.Language\EazyNotes.Language.csproj" />
+    <ProjectReference Include="..\EazyNotes.Models\EazyNotes.Models.csproj" />
+    <ProjectReference Include="..\EazyNotesDesktop.Library\EazyNotesDesktop.Library.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\icon.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\logo.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\settings\DarkModeSetting.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\settings\LightModeSetting.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\spinner.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Views\Colors\ColorsDark.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Views\Colors\ColorsLight.xaml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+</Project>
